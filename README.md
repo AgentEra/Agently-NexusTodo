@@ -51,6 +51,7 @@ Agently provides the core primitives used here:
 - Chat/LLM ops spec: [auto_agent/docs/spec-dd-llm-chat-ops.md](auto_agent/docs/spec-dd-llm-chat-ops.md)
 - Client usage: [client/docs/client-documentation.md](client/docs/client-documentation.md)
 - Test reports: [auto_agent/docs/test-report.md](auto_agent/docs/test-report.md), [backend/docs/test-report.md](backend/docs/test-report.md)
+- Launch / promo article: [docs/wechat-article.md](docs/wechat-article.md), [docs/wechat-article_cn.md](docs/wechat-article_cn.md)
 
 ## VibeCoding Process & Quality Loop
 A detailed write-up of guidance, self-checks, scenario design, and iterative optimization:

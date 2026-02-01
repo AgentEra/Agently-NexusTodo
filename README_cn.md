@@ -31,6 +31,7 @@ Agently 在本项目中提供了关键能力：
 - 对话与 LLM 运行规范：[auto_agent/docs/spec-dd-llm-chat-ops.md](auto_agent/docs/spec-dd-llm-chat-ops.md)
 - 客户端使用：[client/docs/client-documentation.md](client/docs/client-documentation.md)
 - 测试报告：[auto_agent/docs/test-report.md](auto_agent/docs/test-report.md), [backend/docs/test-report.md](backend/docs/test-report.md)
+- 推广/发布文章：[docs/wechat-article.md](docs/wechat-article.md), [docs/wechat-article_cn.md](docs/wechat-article_cn.md)
 
 ## VibeCoding 过程与质量闭环
 关于指导、自检、场景测试与优化迭代的完整记录：

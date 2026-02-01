@@ -1,0 +1,173 @@
+# 我们用 VibeCoding + Agently，在 6 小时里做出了一个“能用”的智能 ToDo（但这不是重点）
+
+> 项目仓库：[https://github.com/AgentEra/Agently-NexusTodo](https://github.com/AgentEra/Agently-NexusTodo)  
+> Agently 框架：[https://github.com/AgentEra/Agently](https://github.com/AgentEra/Agently)  
+> 本文英文版（面向 GitHub 读者）：[docs/wechat-article.md](docs/wechat-article.md)
+
+如果你看过最近的 “VibeCoding” 讨论，可能会有一种冲动：把需求丢给模型，“一路 Accept All”，然后期待它自己把项目写完。
+
+我们也做了类似的事——但我们更关心的是：**怎么把这种新范式变成可复制的工程流程**。
+
+在 51CTO 的一场直播里（Maplemx 主讲），我们以 VibeCoding 的方式，完成了一个端到端的智能 ToDo 系统：Go 后端 + 基于 Agently 的智能服务 + 支持流式输出的 Web 客户端。整体开发与优化约 6 小时，其中直播教学覆盖约 4 小时；Golang 后端由 TRAE 实现，其它部分由 VSCode + Codex 完成。
+
+这个 ToDo 只是一个“最小样例”。更重要的是，我们在过程中确认了几件事：  
+**SpecDD、API 合同、可执行场景测试、以及 Agently 这类框架能力，才是让智能模块“能落地”的关键。**
+
+（作品截图建议放这里：`NexusTodoImage.png`）
+
+---
+
+## 1) 51CTO 直播里，我最希望你带走的一个关键认知
+
+**SpecDD 很重要。**
+
+更具体一点：当你在做一个“多模块协同”的项目时（后端 / 前端 / 智能模块 / 测试脚本），API 文档不是“最后补一补的说明书”，而是一个贯穿全程的 **协同合同**：
+
+- 你可以并行开发，而不是串行等人。
+- 你可以写“可执行”的集成场景，而不是靠前端 UI 猜对不对。
+- 你可以在联调时快速定位问题：到底是接口实现错、数据不一致、还是智能模块决策错。
+
+直播里我们有一张图（SpecDD → 拆解架构 → 多会话并行开发 → API 文档 / use case / 测试脚本 → 联调），建议你把它当成 “VibeCoding 的工程化路线图”。  
+（这张图可插在这里。）
+
+---
+
+## 2) VibeCoding 的真实形态：你更像在协调一个技术团队
+
+很多人把 VibeCoding 想成“模型替你写代码”。但一旦进入真实项目，它更像是：**你在指挥一个多角色、多会话的技术团队**。
+
+我们当时的组织方式大概是：
+- 前端一个会话：负责 UI、流式展示、任务卡片等。
+- 后端一个会话：负责 REST API、持久化、设备注册等。
+- 智能模块一个会话：负责语义理解、工具调用、ReAct 循环、SSE 输出协议等。
+- 各自配套的测试会话：端到端联调之前，先把局部可验证的部分压实。
+
+更有意思的是“会话合并”：
+
+早期我们对智能模块会话做了较严格的权限约束（只能在特定目录工作），这样可以逼迫它先把自己模块做好；  
+当项目进入联调阶段，智能问题开始跨文件、跨模块出现，我们会逐步放开目录权限，直到它能看完整个项目——这个会话也就自然演化成“维护全仓”的会话。
+
+这件事给我的启发是：**权限与上下文不是越大越好，而是应该跟着工程阶段动态调整。**
+
+---
+
+## 3) 智能模块的“低级坑”：模型会退回传统做法（直到你把它拉回来）
+
+在引用 Agently 框架开发智能逻辑时，我们遇到一个非常典型的问题：
+
+一方面，Agently 的语料还不足以成为模型的“通识”；  
+另一方面，面向智能的逻辑天然更难开发、测试、优化。于是模型会出现一些看起来“很智障”的行为——比如在做语义理解和意图识别时，**第一反应是用分词、关键词匹配这类传统方案**，而不是用 LLM（尤其是经过 Agently 结构化约束后非常稳定的 LLM 能力）来解决。
+
+我们把这些“踩坑记录”沉淀进了技能文档，里面甚至直接写了“Lessons from NexusTodo”，你可以当成一份“下一次别再踩”的清单：
+- [auto_agent/docs/skills/agently-agent-systems/SKILL.md](auto_agent/docs/skills/agently-agent-systems/SKILL.md)
+- [auto_agent/docs/skills/agently-agents-and-prompts/SKILL.md](auto_agent/docs/skills/agently-agents-and-prompts/SKILL.md)
+
+一句话总结：**智能模块要用 LLM 做智能事，但前提是你要用“工程化约束”把它的能力锁在正确轨道上。**
+
+---
+
+## 4) 为什么是 Agently：我们把复杂度“从代码里挪走了”
+
+如果没有框架，VibeCoding 很容易变成“prompt 玄学 + 解析地狱 + 线上返工”。
+
+Agently 在这次项目里，帮我们把一堆原本需要复杂代码才能实现的能力，变成了可复用的工程原语：
+
+1) **不依赖接口参数的稳定结构输出**  
+通过 Agently 的 `Output Format` + `Ensure Keys`，我们让智能服务输出“合同式结构”，避免了“自然语言解释一大堆但缺字段”的不稳定。
+
+2) **简单可靠的信号驱动编排表达**  
+通过 `TriggerFlow`，把“多轮对话 + 多次工具调用 + 条件分支”变成可读的编排，而不是一坨 if-else。
+
+3) **更可控的 ReAct 循环与流式交互**  
+流式输出把“过程”和“结论”分开；同时我们限制最多 10 步，避免无限循环，并把最终任务卡片作为“结论的一部分”统一下发。
+
+这也是我们为什么强调：智能模块不能只靠“硬写”，必须靠框架 + 合同 + 测试把它拉进工程世界。
+
+---
+
+## 5) 如果你让模型“硬写整个智能模块”，现实里会撞上哪些坑？
+
+这里我们不靠“感觉”，而是引用一些公开讨论/研究里反复出现的风险（你也能看到很多同类案例在 X / Reddit / 技术媒体里出现）：
+
+1) **“Accept All” 会放大不可控性**  
+“Vibe coding” 本身是一种很有感染力的表达（Karpathy 的原帖引发了大量讨论），但很多人也会在项目复杂度上来后发现：代码越写越多，你越来越不理解它，修 bug 变成掷骰子。  
+参考：Karpathy 原帖（X）与讨论（例如 Ars Technica 的综述文章）。
+
+2) **质量回归：逻辑 bug、维护成本、评审尾巴都会上来**  
+一些对 PR 的分析与报道指出：AI 参与代码生成后，工程实践很容易出现“看起来很快，但尾部成本更高”的情况（返工、review、缺陷修复）。  
+参考：CodeRabbit 对开源 PR 的分析与媒体报道（例如 The Register 的报道）。
+
+3) **安全与过度自信问题**  
+研究发现，在 AI 辅助下写出的代码，往往更容易出现安全问题；同时开发者对自己产出的安全性更自信——这是非常危险的组合。  
+参考：Stanford / Dan Boneh 团队相关研究的报道。
+
+4) **供应链风险：幻觉依赖 + “slopsquatting”**  
+当模型编造出并不存在的包名时，攻击者可以抢注同名包并投毒，从而诱导安装（典型的供应链攻击路径）。  
+参考：UTSA 对“包名幻觉”研究的报道，以及 arXiv 上关于“slopsquatting/包名幻觉”方向的论文。
+
+那 Agently 怎么帮我们绕开这些坑？
+
+- 用 **SpecDD + API 文档** 把系统分层，先把合同定清楚。
+- 用 **结构化输出** 把智能模块的输出变成可校验的数据，而不是一段“解释”。
+- 用 **TriggerFlow/编排** 把多步骤任务写成“可读、可调、可测试”的流程。
+- 用 **真实接口集成场景测试** 把“看起来能用”变成“真的能用”。
+- 用 **权限/上下文渐进开放** 把联调复杂度收敛在可控范围。
+
+---
+
+## 6) 只要对 AI 应用开发有爱，谁来都欢迎
+
+我们真心希望这套方法能帮更多人把智能模块做成“可交付的工程”。如果你：
+- 正在把 LLM 嵌进现有业务系统；
+- 想把多轮对话、工具调用、流式交互、复杂流程编排做得更稳；
+- 想找一套可复制的 Agentic 开发范式；
+
+欢迎来 Agently 社区一起讨论、一起踩坑、一起把坑填平。
+
+---
+
+## 7) 加入 Agently 微信讨论群（官方入口）
+
+你可以通过以下方式找到官方微信群入口：
+- 访问 Agently 官网：[https://Agently.tech](https://Agently.tech)
+- 访问 Agently GitHub 主页：[https://github.com/AgentEra/Agently](https://github.com/AgentEra/Agently)
+
+申请表链接（来自官方文档/README 当时的指向）：
+- [https://doc.weixin.qq.com/forms/AIoA8gcHAFMAScAhgZQABIlW6tV3l7QQf](https://doc.weixin.qq.com/forms/AIoA8gcHAFMAScAhgZQABIlW6tV3l7QQf)
+
+---
+
+## 8) 我们给自己定个挑战吧（也欢迎你一起）
+
+既然你说“当然可以”，那我帮你把挑战设计成一个可传播、可验证、也能真实提升工程能力的版本：
+
+**Agently VibeCoding 上线挑战（48 小时 / 周末版）**
+
+目标：把一个“带智能模块的功能”做成可演示、可复现、可回归的工程交付，而不仅仅是个 Demo。
+
+最低交付标准（建议清单）：
+1) 一份 SpecDD（1-2 页就够）：目标、边界、不可做的事、成功标准。
+2) 一份 API 合同：接口、字段、状态码、示例请求响应。
+3) 一个智能模块：多轮对话 + 至少 2 次工具调用（查找 + 决策 + 写操作）。
+4) 一个流式 UI：能区分“进行中输出”与“最终结论”。
+5) 至少 10 条真实接口集成用例：写成脚本，能一键跑通。
+6) 一段 60 秒录屏：展示从自然语言到真实系统变更的全过程。
+
+你把成果发到：
+- Agently GitHub Discussions（可公开复盘）
+- 或者发到微信群（适合快速交流与反馈）
+
+我们就能把“VibeCoding”从一种氛围，变成一种真正可复用的工程能力。
+
+---
+
+## 相关阅读（公开资料）
+
+- Karpathy X 原帖（“vibe coding / accept all”）：<https://x.com/karpathy/status/1886192184808149383>
+- Reddit 讨论样本（vibe coding 体验与困惑）：<https://www.reddit.com/r/ClaudeAI/comments/1igppfg/i_dont_know_how_to_vibe_code/>
+- Ars Technica 综述（vibe coding 讨论）：<https://arstechnica.com/ai/2025/03/is-vibe-coding-with-ai-gnarly-or-reckless-maybe-some-of-both/>
+- The Register 报道（AI 代码缺陷/评审尾巴）：<https://www.theregister.com/2025/12/17/ai_code_bugs/>
+- CodeRabbit 报告入口（新闻稿）：<https://www.businesswire.com/news/home/20251217666881/en/CodeRabbits-State-of-AI-vs-Human-Code-Generation-Report-Finds-That-AI-Written-Code-Produces-1.7x-More-Issues-Than-Human-Code>
+- Stanford EE（Dan Boneh 团队：bug + 安全 + 过度自信）：<https://ee.stanford.edu/dan-boneh-and-team-find-relying-ai-more-likely-make-your-code-buggier>
+- arXiv（package hallucination / slopsquatting 论文）：<https://arxiv.org/abs/2406.10279>
+- Help Net Security（包名幻觉与 slopsquatting 报道）：<https://www.helpnetsecurity.com/2025/04/14/package-hallucination-slopsquatting-malicious-code/>
