@@ -180,6 +180,18 @@ NexusTodo 的整体架构很简单，可以理解成三块拼图：
 
 ---
 
+## 10) 两个倡议：加入我们 & 商务合作
+
+最后补两条信息，方便你一键找到我们：
+
+1) **加入团队（含实习）**  
+如果你对 AI 应用开发技术探索有热情，欢迎加入 Agently 团队。简历请发送至：hr@agently.tech（也欢迎实习生投递）。
+
+2) **商务合作**  
+如有商务合作需求，欢迎发送邮件至：business@agently.tech
+
+---
+
 ## 相关阅读（公开资料）
 
 - Karpathy X 原帖（vibe coding / accept all）：x.com/karpathy/status/1886192184808149383
