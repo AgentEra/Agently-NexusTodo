@@ -100,16 +100,16 @@ NexusTodo 的整体架构很简单，可以理解成三块拼图：
 莫欣老师的判断是：很多坑并不“高级”，但会在真实项目里反复出现。这里我也结合一些公开讨论/研究里反复出现的风险做个归纳：
 
 1) **“Accept All” 会放大不可控性**  
-代码越写越多，你越来越不理解它，修 bug 变成“碰运气”。
+Karpathy 在某处谈到 “vibe coding / accept all” 的语境后，引发了大量讨论。现实里最常见的翻车方式就是：代码越写越多，你越来越不理解它，修 bug 变成“碰运气”。
 
 2) **质量回归会拖长尾巴**  
-看起来产出快，但后续返工、review、修 bug 的成本会把优势吃掉。
+看起来产出快，但后续返工、review、修 bug 的成本会把优势吃掉（也有团队基于开源 PR 的对比分析讨论过类似现象）。
 
 3) **安全与过度自信是危险组合**  
-代码更容易带坑，同时人更容易“以为没坑”。
+代码更容易带坑，同时人更容易“以为没坑”。例如 Dan Boneh 团队的相关研究与讨论，就提醒过“错误率上升 + 过度自信”的组合风险。
 
 4) **供应链风险更容易被触发**  
-幻觉依赖、包名混淆等路径在 AI 时代更常见、更隐蔽。
+幻觉依赖、包名混淆等路径在 AI 时代更常见、更隐蔽；安全研究里甚至把这类风险称为 “slopsquatting / package hallucination”。
 
 ---
 
@@ -191,12 +191,3 @@ NexusTodo 的整体架构很简单，可以理解成三块拼图：
 如有商务合作需求，欢迎发送邮件至：business@agently.tech
 
 ---
-
-## 相关阅读（公开资料）
-
-- Karpathy X 原帖（vibe coding / accept all）：x.com/karpathy/status/1886192184808149383
-- Reddit 讨论样本（vibe coding 体验与困惑）：reddit.com/r/ClaudeAI/comments/1igppfg/i_dont_know_how_to_vibe_code/
-- Ars Technica 综述（vibe coding 讨论）：arstechnica.com/ai/2025/03/is-vibe-coding-with-ai-gnarly-or-reckless-maybe-some-of-both/
-- The Register 报道（AI 代码缺陷/评审尾巴）：theregister.com/2025/12/17/ai_code_bugs/
-- Stanford EE（bug + 安全 + 过度自信）：ee.stanford.edu/dan-boneh-and-team-find-relying-ai-more-likely-make-your-code-buggier
-- arXiv（package hallucination / slopsquatting）：arxiv.org/abs/2406.10279
