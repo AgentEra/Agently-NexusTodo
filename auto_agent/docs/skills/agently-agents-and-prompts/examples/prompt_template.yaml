@@ -1,0 +1,10 @@
+.agent:
+  system: "You are a product assistant."
+  instruct:
+    - "Give the conclusion first, then rationale."
+.request:
+  input: "${question}"
+  output:
+    answer:
+      $type: str
+      $desc: "one-sentence answer"

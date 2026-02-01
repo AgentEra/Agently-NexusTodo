@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NexusTodo Client</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app" id="appRoot">
+      <div class="shell">
+        <aside class="sidebar">
+          <div class="sidebar-top">
+            <div class="brand-mark">N</div>
+            <div class="brand-text">
+              <h1>NexusTodo</h1>
+              <p>个人任务中枢</p>
+            </div>
+          </div>
+
+          <div class="user-card">
+            <div class="avatar">MG</div>
+            <div class="user-info">
+              <div class="user-name">Miriam Graham</div>
+              <div class="device-meta" id="deviceMeta">设备未注册</div>
+            </div>
+            <button class="icon ghost" id="settingsBtn" aria-label="设置">⚙</button>
+          </div>
+
+          <div class="sidebar-actions">
+            <button class="primary" id="newTaskBtn">+ 新建任务</button>
+          </div>
+
+          <div class="sidebar-section">
+            <div class="section-title">AI 对话</div>
+            <div class="nav-list">
+              <button class="chip" id="chatViewBtn">
+                <span class="nav-label">智能助手</span>
+                <span class="nav-count">AI</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="sidebar-section">
+            <div class="section-title">系统列表</div>
+            <div class="nav-list" id="statusFilters"></div>
+          </div>
+
+          <div class="sidebar-section">
+            <div class="section-title">标签</div>
+            <div class="tag-list" id="tagFilters"></div>
+          </div>
+
+          <div class="sidebar-footer">
+            <button class="ghost" id="syncBtn">同步</button>
+            <button class="review" id="reviewBtn">
+              <span class="dot" id="reviewDot"></span>
+              <span id="reviewLabel">复盘</span>
+            </button>
+          </div>
+        </aside>
+
+        <main class="main">
+          <div class="task-view" id="taskView">
+            <header class="main-header">
+              <div class="list-title">
+                <span class="list-icon">🧩</span>
+                <div>
+                  <h2 id="listTitle">我的清单</h2>
+                  <p id="listMeta">0 项</p>
+                </div>
+              </div>
+              <div class="header-actions">
+                <div class="banner" id="banner"></div>
+              </div>
+            </header>
+
+            <div class="toolbar">
+              <div class="search-field">
+                <input id="searchInput" type="search" placeholder="搜索任务" />
+              </div>
+              <select id="sortSelect">
+                <option value="createdAt:desc">创建时间（新→旧）</option>
+                <option value="createdAt:asc">创建时间（旧→新）</option>
+                <option value="updatedAt:desc">更新时间（新→旧）</option>
+                <option value="updatedAt:asc">更新时间（旧→新）</option>
+              </select>
+              <button class="ghost" id="clearFiltersBtn">清空筛选</button>
+            </div>
+
+            <section class="task-panel">
+              <div class="task-list" id="board"></div>
+            </section>
+
+            <div class="editor-placeholder">从左侧快速创建任务</div>
+          </div>
+
+          <div class="chat-view" id="chatView">
+            <header class="main-header">
+              <div class="list-title">
+                <span class="list-icon">💬</span>
+                <div>
+                  <h2>智能助手</h2>
+                  <p>自然语言创建/查询/更新任务</p>
+                </div>
+              </div>
+              <div class="header-actions">
+                <button class="ghost" id="backToTasksBtn">返回任务</button>
+              </div>
+            </header>
+
+            <section class="chat-panel">
+              <div class="chat-messages" id="chatMessages"></div>
+              <form class="chat-input" id="chatForm">
+                <textarea id="chatInput" rows="2" placeholder="例如：帮我创建一个任务：周一提交周报，标签 work"></textarea>
+                <button type="submit" class="primary" id="chatSendBtn">发送</button>
+              </form>
+            </section>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <div class="modal" id="quickModal" aria-hidden="true">
+      <div class="modal-card quick-card">
+        <div class="modal-header">
+          <h3>快速新建</h3>
+          <button class="icon" id="closeQuickBtn" aria-label="关闭">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="field">
+            <label for="quickTitleInput">任务标题</label>
+            <input id="quickTitleInput" type="text" placeholder="例如：发送周报" />
+          </div>
+          <div class="field">
+            <label for="quickTagsInput">标签</label>
+            <input id="quickTagsInput" type="text" placeholder="#work #urgent" />
+            <div class="helper">支持空格或逗号分隔，自动去掉 #。</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="ghost" id="expandQuickBtn">展开更多</button>
+          <button class="primary" id="quickSaveBtn">快速保存</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal" id="editorModal" aria-hidden="true">
+      <div class="modal-card editor-card">
+        <section class="editor-panel">
+          <div class="panel-header">
+            <div>
+              <h2 id="editorTitle">新建任务</h2>
+              <p id="editorHint">用 #标签 快速归档任务</p>
+            </div>
+            <div class="editor-meta">
+              <div class="small" id="syncHint">最近同步：-</div>
+              <button class="ghost" id="collapseEditorBtn">返回快速</button>
+            </div>
+          </div>
+
+          <form id="taskForm">
+            <div class="field">
+              <label for="titleInput">标题</label>
+              <input id="titleInput" name="title" type="text" placeholder="例如：完成项目报告" required />
+            </div>
+
+            <div class="field">
+              <label for="descriptionInput">描述</label>
+              <textarea id="descriptionInput" name="description" rows="3" placeholder="补充任务细节"></textarea>
+            </div>
+
+            <div class="field inline">
+              <div>
+                <label for="tagsInput">标签</label>
+                <input id="tagsInput" name="tags" type="text" placeholder="#work #urgent" />
+                <div class="helper">支持空格或逗号分隔，自动去掉 #。</div>
+              </div>
+              <div>
+                <label for="statusSelect">状态</label>
+                <select id="statusSelect" disabled>
+                  <option value="待办">待办</option>
+                  <option value="进行中">进行中</option>
+                  <option value="已完成">已完成</option>
+                  <option value="已延期">已延期</option>
+                  <option value="已取消">已取消</option>
+                </select>
+                <div class="helper" id="statusHelper">新任务将以“待办”创建。</div>
+              </div>
+            </div>
+
+            <div class="editor-actions">
+              <button type="submit" class="primary" id="saveTaskBtn">保存任务</button>
+              <button type="button" class="ghost" id="resetTaskBtn">重置</button>
+            </div>
+          </form>
+        </section>
+      </div>
+    </div>
+
+    <div class="modal" id="settingsModal" aria-hidden="true">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>设置</h3>
+          <button class="icon" id="closeSettingsBtn" aria-label="关闭">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="field">
+            <label for="baseUrlInput">API Base URL</label>
+            <input id="baseUrlInput" type="text" placeholder="http://localhost:8080/api" />
+          </div>
+          <div class="field">
+            <label for="agentBaseUrlInput">Agent Base URL</label>
+            <input id="agentBaseUrlInput" type="text" placeholder="http://localhost:8080/agent" />
+          </div>
+          <div class="field">
+            <label for="reviewTimeInput">复盘时间</label>
+            <input id="reviewTimeInput" type="time" />
+          </div>
+          <div class="field">
+            <label for="userIdInput">用户 ID</label>
+            <input id="userIdInput" type="text" readonly />
+          </div>
+          <div class="field">
+            <label for="deviceIdInput">设备 ID</label>
+            <input id="deviceIdInput" type="text" readonly />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="primary" id="saveSettingsBtn">保存设置</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script src="app.js" defer></script>
+  </body>
+</html>

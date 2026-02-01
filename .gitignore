@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Node
+node_modules/
+dist/
+build/
+
+# OS
+.DS_Store
+
+# Local data
+*.db
+nexustodo-server
+
+# Logs
+*.log
+
+# Editor
+.vscode/
+.idea/
+
+# Env
+.env
+.env.*
